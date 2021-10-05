@@ -89,6 +89,17 @@ RectI MineField::GetRect() const
 	return RectI(0, width * SpriteCodex::tileSize, 0, height * SpriteCodex::tileSize);
 }
 
+void MineField::OnRevealClick(const Vei2 & screenPos)
+{
+	const Vei2 gridPos = ScreenToGrid(screenPos);
+	assert(gridPos.x >= 0 && gridPos.x < width && gridPos.y >= 0 && gridPos.y < height);
+	Tile& tile = TileAt(gridPos);
+	if (!tile.IsRevealed())
+	{
+		tile.Reveal();
+	}
+}
+
 MineField::Tile& MineField::TileAt(const Vei2 & gridPos)
 {
 	return field[gridPos.y * width + gridPos.x];
@@ -97,4 +108,9 @@ MineField::Tile& MineField::TileAt(const Vei2 & gridPos)
 const MineField::Tile & MineField::TileAt(const Vei2 & gridPos) const
 {
 	return field[gridPos.y * width + gridPos.x];
+}
+
+Vei2 MineField::ScreenToGrid(const Vei2 & screenPos)
+{
+	return screenPos / SpriteCodex::tileSize;
 }
