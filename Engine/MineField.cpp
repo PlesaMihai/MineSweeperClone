@@ -114,7 +114,9 @@ void MineField::Tile::SetNeighborMemeCount(int memeCount)
 	nNeighborMemes = memeCount;
 }
 
-MineField::MineField(int nMines)
+MineField::MineField(const Vei2& center, int nMines)
+	:
+	topLeft(center - Vei2(width * SpriteCodex::tileSize, height * SpriteCodex::tileSize) / 2)
 {
 	assert(nMines > 0 && nMines < width * height);
 	std::random_device rd;
@@ -150,7 +152,7 @@ void MineField::Draw(Graphics & gfx) const
 	{
 		for (gridPos.x = 0; gridPos.x < width; gridPos.x++)
 		{
-			TileAt(gridPos).Draw(gridPos * SpriteCodex::tileSize, isFucked, gfx);
+			TileAt(gridPos).Draw(topLeft + gridPos * SpriteCodex::tileSize, isFucked, gfx);
 		}
 
 	}
@@ -158,7 +160,7 @@ void MineField::Draw(Graphics & gfx) const
 
 RectI MineField::GetRect() const
 {
-	return RectI(0, width * SpriteCodex::tileSize, 0, height * SpriteCodex::tileSize);
+	return RectI(topLeft, width * SpriteCodex::tileSize, height * SpriteCodex::tileSize);
 }
 
 void MineField::OnRevealClick(const Vei2 & screenPos)
@@ -206,7 +208,7 @@ const MineField::Tile & MineField::TileAt(const Vei2 & gridPos) const
 
 Vei2 MineField::ScreenToGrid(const Vei2 & screenPos)
 {
-	return screenPos / SpriteCodex::tileSize;
+	return (screenPos - topLeft) / SpriteCodex::tileSize;
 }
 
 int MineField::CountNeighborMemes(const Vei2& gridPos)
