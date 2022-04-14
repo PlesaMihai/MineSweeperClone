@@ -16,9 +16,9 @@ bool MineField::Tile::HasMine() const
 	return hasMine;
 }
 
-void MineField::Tile::Draw(const Vei2& screenPos, bool fucked, Graphics& gfx) const
+void MineField::Tile::Draw(const Vei2& screenPos, MineField::State fieldState, Graphics& gfx) const
 {
-	if (!fucked)
+	if (fieldState != MineField::State::Fucked)
 	{
 		switch (state)
 		{
@@ -108,6 +108,11 @@ bool MineField::Tile::IsFlagged() const
 	return state == State::Flagged;
 }
 
+bool MineField::Tile::HasNoNeighborMemes() const
+{
+	return nNeighborMemes == 0;;
+}
+
 void MineField::Tile::SetNeighborMemeCount(int memeCount)
 {
 	assert(nNeighborMemes == -1);
@@ -153,7 +158,7 @@ void MineField::Draw(Graphics & gfx) const
 	{
 		for (gridPos.x = 0; gridPos.x < width; gridPos.x++)
 		{
-			TileAt(gridPos).Draw(topLeft + gridPos * SpriteCodex::tileSize, isFucked, gfx);
+			TileAt(gridPos).Draw(topLeft + gridPos * SpriteCodex::tileSize, state, gfx);
 		}
 
 	}
@@ -166,7 +171,7 @@ RectI MineField::GetRect() const
 
 void MineField::OnRevealClick(const Vei2 & screenPos)
 {
-	if(!isFucked)
+	if(state == State::Memeing)
 	{
 		const Vei2 gridPos = ScreenToGrid(screenPos);
 		assert(gridPos.x >= 0 && gridPos.x < width&& gridPos.y >= 0 && gridPos.y < height);
@@ -176,8 +181,11 @@ void MineField::OnRevealClick(const Vei2 & screenPos)
 			tile.Reveal();
 			if (tile.HasMine())
 			{
-				isFucked = true;
+				state = State::Fucked;
 				sndLose.Play();
+			}
+			else if(GameIsWon()) {
+				state = State::Winrar;
 			}
 		}
 	}
@@ -186,7 +194,7 @@ void MineField::OnRevealClick(const Vei2 & screenPos)
 
 void MineField::OnFlagClick(const Vei2& screenPos)
 {
-	if (!isFucked)
+	if (state == State::Memeing)
 	{
 		const Vei2 gridPos = ScreenToGrid(screenPos);
 		assert(gridPos.x >= 0 && gridPos.x < width&& gridPos.y >= 0 && gridPos.y < height);
@@ -196,6 +204,11 @@ void MineField::OnFlagClick(const Vei2& screenPos)
 			tile.ToggleFlag();
 		}
 	}
+}
+
+MineField::State MineField::GetState() const
+{
+	return state;
 }
 
 MineField::Tile& MineField::TileAt(const Vei2 & gridPos)
@@ -245,9 +258,4 @@ bool MineField::GameIsWon() const
 		}
 	}
 	return true;
-}
-
-bool MineField::GameIsLost() const
-{
-	return isFucked;
 }
