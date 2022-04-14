@@ -45,6 +45,7 @@ public:
 	void OnFlagClick(const Vei2& screenPos);
 	State GetState() const;
 private:
+	void Revealtile(const Vei2& gridPos);
 	Tile& TileAt(const Vei2& gridPos);
 	const Tile& TileAt(const Vei2& gridPos) const;
 	Vei2 ScreenToGrid(const Vei2& screenPos);

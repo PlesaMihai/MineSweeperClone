@@ -175,18 +175,11 @@ void MineField::OnRevealClick(const Vei2 & screenPos)
 	{
 		const Vei2 gridPos = ScreenToGrid(screenPos);
 		assert(gridPos.x >= 0 && gridPos.x < width&& gridPos.y >= 0 && gridPos.y < height);
-		Tile& tile = TileAt(gridPos);
-		if (!tile.IsRevealed() && !tile.IsFlagged())
+		Revealtile(gridPos);
+
+		if (GameIsWon()) 
 		{
-			tile.Reveal();
-			if (tile.HasMine())
-			{
-				state = State::Fucked;
-				sndLose.Play();
-			}
-			else if(GameIsWon()) {
-				state = State::Winrar;
-			}
+			state = State::Winrar;
 		}
 	}
 
@@ -209,6 +202,38 @@ void MineField::OnFlagClick(const Vei2& screenPos)
 MineField::State MineField::GetState() const
 {
 	return state;
+}
+
+void MineField::Revealtile(const Vei2& gridPos)
+{
+	Tile& tile = TileAt(gridPos);
+	if (!tile.IsRevealed() && !tile.IsFlagged())
+	{
+		tile.Reveal();
+		if (tile.HasMine())
+		{
+			state = State::Fucked;
+			sndLose.Play();
+		}
+		else if (tile.HasNoNeighborMemes()) {
+			const int xStart = std::max(0, gridPos.x - 1);
+			const int yStart = std::max(0, gridPos.y - 1);
+			const int xEnd = std::min(width - 1, gridPos.x + 1);
+			const int yEnd = std::min(height - 1, gridPos.y + 1);
+
+			for (Vei2 gridPos = { xStart, yStart }; gridPos.y <= yEnd; gridPos.y++)
+			{
+				for (gridPos.x = xStart; gridPos.x <= xEnd; gridPos.x++)
+				{
+					Tile& tile = TileAt(gridPos);
+					if (!tile.IsRevealed())
+					{
+						Revealtile(gridPos);
+					}
+				}
+			}
+		}
+	}
 }
 
 MineField::Tile& MineField::TileAt(const Vei2 & gridPos)
