@@ -177,6 +177,7 @@ void MineField::OnRevealClick(const Vei2 & screenPos)
 			if (tile.HasMine())
 			{
 				isFucked = true;
+				sndLose.Play();
 			}
 		}
 	}
@@ -232,4 +233,21 @@ int MineField::CountNeighborMemes(const Vei2& gridPos)
 	}
 
 	return count;
+}
+
+bool MineField::GameIsWon() const
+{
+	for (const Tile& t : field)
+	{
+		if ((t.HasMine() && !t.IsFlagged()) || !t.HasMine() && !t.IsRevealed())
+		{
+			return false; 
+		}
+	}
+	return true;
+}
+
+bool MineField::GameIsLost() const
+{
+	return isFucked;
 }
